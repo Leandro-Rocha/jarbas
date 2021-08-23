@@ -1,0 +1,33 @@
+{
+  "name": "jarbas",
+  "version": "1.0.0",
+  "description": "CICD for the Cafofo",
+  "main": "index.js",
+  "scripts": {
+    "start": "ts-node src/cli.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Leandro Rocha",
+  "license": "ISC",
+  "dependencies": {
+    "@octokit/webhooks": "^9.12.0",
+    "@octokit/webhooks-types": "^4.3.0",
+    "console-stamp": "^3.0.3",
+    "dockerode": "^3.3.0",
+    "dotenv": "^10.0.0",
+    "moment": "^2.29.1",
+    "tslib": "^2.3.1"
+  },
+  "devDependencies": {
+    "@types/dockerode": "^3.2.7",
+    "@types/node": "^16.7.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Leandro-Rocha/jarbas.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Leandro-Rocha/jarbas/issues"
+  },
+  "homepage": "https://github.com/Leandro-Rocha/jarbas#readme"
+}
