@@ -1,22 +1,66 @@
-import Docker from 'dockerode'
+import { default as Docker, default as Dockerode } from 'dockerode';
+import { JarbasWatcherConfig } from './config';
 
 console.debug(`Starting Docker module`);
+export const docker = new Docker({ socketPath: '/var/run/docker.sock' });
 
-const docker = new Docker({ socketPath: '/var/run/docker.sock' });
 
 console.info(`Docker module started`);
 
-export async function test() {
-
-    const list = await docker.listContainers()
-    const cafofoId = list.find(container => container.Image === 'cafofo-assistant')?.Id!
-
-    console.log(`ID ${cafofoId}`)
-
-    const cafofoContainer = docker.getContainer(cafofoId)
-    console.log(cafofoContainer)
-
-    await cafofoContainer.stop()
-
-    await cafofoContainer.restart()
+export async function listContainers(filters?: any) {
+    return await docker.listContainers({ all: true, filters: filters })
 }
+
+export async function buildImage(config: JarbasWatcherConfig, path: string) {
+    const imageName = config.docker.imageName
+
+    console.debug(`Building [${imageName}]`)
+
+    const stream = await docker.buildImage({
+        context: path,
+        src: ['Dockerfile', ...config.docker.buildSources || []]
+    },
+        { t: `${imageName}` })
+
+    if (process.env.DEBUG)
+        stream.pipe(process.stdout)
+
+    await new Promise((resolve, reject) => {
+        docker.modem.followProgress(stream, (err, res) => {
+            if (err) {
+                console.error(err)
+                reject(err)
+            }
+            else
+                resolve(res)
+        })
+    })
+
+    console.debug(`Finished building [${imageName}]`)
+}
+
+
+
+
+export async function manageContainer(containerInfo: Dockerode.ContainerInfo, action: keyof Dockerode.Container) {
+    const container = docker.getContainer(containerInfo.Id)
+
+    try {
+        console.debug(`Performing [${action}] on container [${containerInfo.Id}]`)
+        await container[action]()
+    }
+    catch (error) {
+        console.warn(`Cannot [${action}] container [${containerInfo.Id}]-[${containerInfo.State}]`)
+    }
+}
+
+
+export async function createContainer(options: Dockerode.ContainerCreateOptions) {
+    console.debug(`Creating container for image [${options.Image}]`);
+    const container = await docker.createContainer(options)
+    console.debug(`Finished creating container [${container.id}]`)
+
+    return container
+}
+
+
