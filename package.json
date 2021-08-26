@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "ts-node src/cli.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc -p tsconfig.json"
   },
   "author": "Leandro Rocha",
   "license": "ISC",
@@ -19,17 +20,16 @@
     "faker": "^5.5.3",
     "git-clone": "^0.1.0",
     "github-webhook-handler": "^1.0.0",
-    "install": "^0.13.0",
     "moment": "^2.29.1",
-    "npm": "^7.21.0",
     "parse-github-url": "^1.0.2",
     "simple-git": "^2.44.0",
-    "tslib": "^2.3.1"
+    "tslib": "^2.3.0",
+    "typescript": "^4.3.5"
   },
   "devDependencies": {
     "@types/dockerode": "^3.2.7",
     "@types/faker": "^5.5.8",
-    "@types/node": "^16.7.1",
+    "@types/node": "^16.4.13",
     "@types/parse-github-url": "^1.0.0"
   },
   "repository": {

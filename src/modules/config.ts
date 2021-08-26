@@ -1,5 +1,6 @@
-import { readFile, requireEnv, writeFile } from "../core/util";
+import { readFile, readPropertyFile, requireEnv, writeFile } from "../core/util";
 import { fetchGithubRepoInfo, parseGithubInfoFromUrl } from "./github/util";
+import * as fs from 'fs'
 
 export type JarbasConfigType = {
     webhookPort: string,
@@ -18,11 +19,10 @@ export type JarbasWatcherConfig = {
     docker: {
         imageName: string,
         buildSources?: string[],
-        environmentFile?: string
     },
 }
 
-const configFolder = requireEnv('CONFIG_FOLDER')
+const configFolder = requireEnv('CONFIG_FOLDER', '/config/')
 const configFile = requireEnv('CONFIG_FILE', 'jarbas-config.json')
 const configPath = configFolder + configFile
 
@@ -31,9 +31,13 @@ export namespace JarbasConfig {
 
     export async function init() {
         try {
+
+            if (!fs.existsSync(configFolder)) throw `Config folder [${configFolder} does not exists]`
+            if (!fs.existsSync(configFolder)) throw `Config file [${configPath} does not exists]`
+
             jarbasConfig = await loadConfigFile()
         } catch (error) {
-            console.error(`Fatal error loading config file: ${error.message}`)
+            console.error(`Fatal error loading config file: ${error.message || error}`)
             process.exit()
         }
     }
@@ -92,5 +96,15 @@ export function getWatchersFromRepoInfo(repoId: number, branch = 'master') {
         && watcher.github.branch === branch)
 }
 
+export function getEnvironmentForWatcher(watcher: string) {
+    const envFile = `${configFolder}/environments/${watcher}.env`
+
+    if (fs.existsSync(envFile)) {
+        console.debug(`Loading environment from [${envFile}]`)
+        return readPropertyFile(envFile)
+    }
+    console.debug(`Cannot find environment file [${envFile}]. Ignoring...`)
+    return []
+}
 
 

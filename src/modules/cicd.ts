@@ -1,8 +1,7 @@
 import Dockerode from "dockerode";
 import faker from "faker";
 import * as fs from "fs";
-import { readPropertyFile } from "../core/util";
-import { JarbasWatcherConfig } from "./config";
+import { getEnvironmentForWatcher, JarbasWatcherConfig } from "./config";
 import { buildImage, createContainer, listContainers, manageContainer } from "./docker";
 import { gitClone } from "./github/github";
 
@@ -21,7 +20,7 @@ export async function newDeployment(config: JarbasWatcherConfig) {
     const containerOptions: Dockerode.ContainerCreateOptions =
     {
         Image: imageName,
-        Env: (config.docker.environmentFile ? readPropertyFile(config.docker.environmentFile) : []),
+        Env: (getEnvironmentForWatcher(config.name)),
         Labels: { agent: 'jarbas' }
     }
     const newContainer = await createContainer(containerOptions)
