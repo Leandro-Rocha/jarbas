@@ -1,46 +1,52 @@
-import { default as Docker, default as Dockerode } from 'dockerode';
-import { JarbasWatcherConfig } from './config';
+import { default as Docker, default as Dockerode } from 'dockerode'
+import { JarbasWatcherConfig } from './config'
 
-console.debug(`Starting Docker module`);
-export const docker = new Docker({ socketPath: '/var/run/docker.sock' });
+console.debug(`Starting Docker module`)
+export const docker = new Docker({ socketPath: '/var/run/docker.sock' })
 
 
-console.info(`Docker module started`);
+console.info(`Docker module started`)
 
 export async function listContainers(filters?: any) {
     return await docker.listContainers({ all: true, filters: filters })
 }
+
 
 export async function buildImage(config: JarbasWatcherConfig, path: string) {
     const imageName = config.docker.imageName
 
     console.debug(`Building [${imageName}]`)
 
-    const stream = await docker.buildImage({
-        context: path,
-        src: ['Dockerfile', ...config.docker.buildSources || []]
-    },
+    process.on('uncaughtException', logUncaughtException)
+
+    const stream = await docker.buildImage(
+        {
+            context: path,
+            src: ['Dockerfile', ...config.docker.buildSources || []]
+        },
         { t: `${imageName}` })
 
-    if (process.env.DEBUG)
-        stream.pipe(process.stdout)
+    await followStream(stream)
 
+    process.off('uncaughtException', logUncaughtException)
+
+    console.info(`Finished building [${imageName}]`)
+}
+
+
+async function followStream(stream: NodeJS.ReadableStream) {
     await new Promise((resolve, reject) => {
         docker.modem.followProgress(stream, (err, res) => {
             if (err) {
                 console.error(err)
                 reject(err)
             }
-            else
+            else {
                 resolve(res)
-        })
+            }
+        }, (event => console.debug(event)))
     })
-
-    console.debug(`Finished building [${imageName}]`)
 }
-
-
-
 
 export async function manageContainer(containerInfo: Dockerode.ContainerInfo, action: keyof Dockerode.Container) {
     const container = docker.getContainer(containerInfo.Id)
@@ -56,11 +62,11 @@ export async function manageContainer(containerInfo: Dockerode.ContainerInfo, ac
 
 
 export async function createContainer(options: Dockerode.ContainerCreateOptions) {
-    console.debug(`Creating container for image [${options.Image}]`);
+    console.debug(`Creating container for image [${options.Image}]`)
     const container = await docker.createContainer(options)
     console.debug(`Finished creating container [${container.id}]`)
 
     return container
 }
 
-
+const logUncaughtException = (error: any) => { console.error('Build failed: ', error) }
