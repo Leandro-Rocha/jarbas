@@ -1,9 +1,9 @@
-import Dockerode from "dockerode";
-import faker from "faker";
-import * as fs from "fs";
-import { getEnvironmentForWatcher, JarbasWatcherConfig } from "./config";
-import { buildImage, createContainer, listContainers, manageContainer } from "./docker";
-import { gitClone } from "./github/github";
+import Dockerode from "dockerode"
+import faker from "faker"
+import * as fs from "fs"
+import { getEnvironmentForWatcher, JarbasWatcherConfig } from "./config"
+import { buildImage, createContainer, listContainers, manageContainer } from "./docker"
+import { gitClone } from "./github/github"
 
 
 export async function newDeployment(config: JarbasWatcherConfig) {

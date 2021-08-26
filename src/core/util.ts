@@ -1,5 +1,5 @@
 import { MissingEnvironmentProperty } from "./exceptions"
-import * as fs from 'fs';
+import * as fs from 'fs'
 
 
 export function requireEnv(environmentProperty: string, defaultValue?: string) {

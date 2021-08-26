@@ -1,5 +1,5 @@
-import { readFile, readPropertyFile, requireEnv, writeFile } from "../core/util";
-import { fetchGithubRepoInfo, parseGithubInfoFromUrl } from "./github/util";
+import { readFile, readPropertyFile, requireEnv, writeFile } from "../core/util"
+import { fetchGithubRepoInfo, parseGithubInfoFromUrl } from "./github/util"
 import * as fs from 'fs'
 
 export type JarbasConfigType = {
