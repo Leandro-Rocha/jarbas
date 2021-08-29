@@ -24,7 +24,10 @@ export async function buildImage(config: JarbasWatcherConfig, path: string) {
             context: path,
             src: ['Dockerfile', ...config.docker.buildSources || []]
         },
-        { t: `${imageName}` })
+        {
+            t: `${imageName}`,
+            labels: { 'agent': 'jarbas', 'jarbasProject': config.name }
+        })
 
     await followStream(stream)
 
