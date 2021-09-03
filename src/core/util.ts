@@ -1,15 +1,6 @@
-import { MissingEnvironmentProperty } from "./exceptions"
 import * as fs from 'fs'
 
-
-export function requireEnv(environmentProperty: string, defaultValue?: string) {
-    const propertyValue = process.env?.[environmentProperty]
-
-    if (propertyValue) return propertyValue
-    if (defaultValue) return defaultValue
-
-    throw new MissingEnvironmentProperty(environmentProperty)
-}
+export const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
 export function readFile(file: string) {
     return fs.readFileSync(file).toString()
