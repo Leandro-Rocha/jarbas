@@ -11,7 +11,7 @@ export async function buildImage(repositoryFolder: string, repositoryName: strin
     const stream = await docker.buildImage(
         {
             context: repositoryFolder,
-            src: listFolderContents(repositoryFolder),
+            src: listFolderContents(repositoryFolder, ['.git']),
         },
         {
             t: imageName,

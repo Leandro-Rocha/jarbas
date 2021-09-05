@@ -17,6 +17,7 @@ export async function fetchGithubRepoInfo(owner: string, name: string) {
 }
 
 
-export function listFolderContents(path: string) {
-    return fs.readdirSync(path)
+export function listFolderContents(path: string, ignore: string[] = []) {
+    const fileList = fs.readdirSync(path)
+    return fileList.filter(file => !ignore?.includes(file))
 }
