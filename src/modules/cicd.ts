@@ -79,7 +79,16 @@ jarbasEvents.on(EVENTS.IMAGE_BUILT, async (ctx: JarbasContext) => {
         {
             Image: imageName,
             Env: (getEnvironmentForProjectEnvironment(project, environment)),
-            HostConfig: { RestartPolicy: { Name: 'unless-stopped' } },
+            HostConfig: {
+                RestartPolicy: { Name: 'unless-stopped' },
+                Mounts: [
+                    {
+                        Source: '/home/pi/cafofo-drive/deluge/autoadd',
+                        Target: '/tmp',
+                        Type: "bind"
+                    }
+                ]
+            },
             Labels: {
                 agent: 'jarbas',
                 jarbasProject: pushInfo.name,
