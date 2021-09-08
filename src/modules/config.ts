@@ -1,33 +1,27 @@
 import * as fs from 'fs'
 import { getProperty } from 'profile-env'
-import { readFile, readPropertyFile, writeFile } from "../core/util"
-import { fetchGithubRepoInfo, parseGithubInfoFromUrl } from "./github/util"
+import { readFile, readPropertyFile, writeFile } from '../core/util'
+import { fetchGithubRepoInfo, parseGithubInfoFromUrl } from './github/util'
 
 export interface JarbasConfigInterface {
-    projects: JarbasProject[],
+    projects: JarbasProject[]
 }
 
 export interface JarbasProject {
-    name: string,
-    active: boolean,
-    githubInfo: GitHubInfo,
-    branchMapping: { [key: string]: string },
-    triggers: { [key: string]: string },
-    pipeline: JarbasProjectPipeline[]
+    name: string
+    active: boolean
+    githubInfo: GitHubInfo
+    branchMapping: [{ branch: string; environment: string }]
+    triggers: { [key: string]: string }
 }
 
 export interface GitHubInfo {
-    url: string,
+    url: string
     id?: number
 }
 
-export interface JarbasProjectPipeline {
-    environment: string,
-    actions: string[]
-}
-
 export interface GithubWebhookTrigger {
-    githubWebhook: string,
+    githubWebhook: string
 }
 
 const configFolder = getProperty('CONFIG_FOLDER', '/config/')!
@@ -39,21 +33,21 @@ export namespace JarbasConfig {
 
     export async function init() {
         try {
-
             if (!fs.existsSync(configFolder)) throw `Config folder [${configFolder} does not exists]`
             if (!fs.existsSync(configFolder)) throw `Config file [${configPath} does not exists]`
 
             jarbasConfig = loadConfigFile()
             await enhanceConfig(jarbasConfig)
             saveConfigFile(jarbasConfig)
-
         } catch (error: any) {
             console.error(`Fatal error loading config file: ${error.message || error}`)
             process.exit()
         }
     }
 
-    export function getConfig() { return jarbasConfig }
+    export function getConfig() {
+        return jarbasConfig
+    }
 }
 
 function loadConfigFile(): JarbasConfigInterface {
@@ -76,8 +70,7 @@ async function enhanceConfig(config: JarbasConfigInterface) {
             console.debug(`Github repo ID not found. Fetching...`)
             const parsedInfo = await parseGithubInfoFromUrl(github.url)
 
-            if (!parsedInfo.owner || !parsedInfo.name)
-                throw `Cannot get [owner] and [name] from ${github.url}`
+            if (!parsedInfo.owner || !parsedInfo.name) throw `Cannot get [owner] and [name] from ${github.url}`
 
             const repoInfo = await fetchGithubRepoInfo(parsedInfo.owner, parsedInfo.name)
 
@@ -94,12 +87,10 @@ async function enhanceConfig(config: JarbasConfigInterface) {
     }
 }
 
-
 export function getEnvironmentForProjectEnvironment(project: JarbasProject, environment: string) {
     let envFile = `${configFolder}/environments/${project.name}.${environment}.env`
 
-    if (!fs.existsSync(envFile))
-        envFile = `${configFolder}/environments/${project.name}.env`
+    if (!fs.existsSync(envFile)) envFile = `${configFolder}/environments/${project.name}.env`
 
     if (fs.existsSync(envFile)) {
         console.debug(`Loading environment from [${envFile}]`)
@@ -110,6 +101,5 @@ export function getEnvironmentForProjectEnvironment(project: JarbasProject, envi
 }
 
 export function getProjectsFromRepositoryId(id: number) {
-    return JarbasConfig.getConfig().projects
-        .filter(project => project.githubInfo.id === id)
+    return JarbasConfig.getConfig().projects.filter((project) => project.githubInfo.id === id)
 }

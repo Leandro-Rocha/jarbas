@@ -4,19 +4,16 @@ import Koa from 'koa'
 import bodyParser from 'koa-bodyparser'
 import Router from 'koa-router'
 import { URL } from 'url'
-import { EVENTS, JarbasContext, jarbasEvents } from '../../core/events'
+import { EVENTS, jarbasEvents, PushInfo } from '../../core/events'
 import { JarbasConfigInterface } from '../config'
 
 export class GithubWebhook {
-
     servers: Server[] = []
 
     constructor(config: JarbasConfigInterface) {
-
         const webhooks = fetchPortAndPathsFromConfig(config)
 
         for (const [port, paths] of Object.entries(webhooks)) {
-
             const app = new Koa()
             const router = new Router()
 
@@ -24,27 +21,32 @@ export class GithubWebhook {
             app.use(router.routes())
             app.use(router.allowedMethods())
 
-            paths.forEach(path => { router.post(path, webhookHandler) })
+            paths.forEach((path) => {
+                router.post(path, webhookHandler)
+            })
             this.servers.push(app.listen(port))
             console.info(`Webhook started on:`, [port, paths])
         }
     }
 
     shutdown() {
-        for (const server of this.servers) { server.close(() => { console.info(`HTTP server closed`) }) }
+        for (const server of this.servers) {
+            server.close(() => {
+                console.info(`HTTP server closed`)
+            })
+        }
     }
 }
 
 function fetchPortAndPathsFromConfig(config: JarbasConfigInterface) {
     return config.projects
-        .filter(project => project.active)
-        .map(pipeline => pipeline.triggers)
-        .filter(trigger => trigger.githubWebhook)
-        .map(trigger => trigger.githubWebhook)
-        .map(payloadUrl => new URL(payloadUrl))
+        .filter((project) => project.active)
+        .map((pipeline) => pipeline.triggers)
+        .filter((trigger) => trigger.githubWebhook)
+        .map((trigger) => trigger.githubWebhook)
+        .map((payloadUrl) => new URL(payloadUrl))
         .reduce((map, url) => {
-            if (!map[url.port])
-                map[url.port] = []
+            if (!map[url.port]) map[url.port] = []
 
             map[url.port].push(url.pathname)
             return map
@@ -61,19 +63,16 @@ function webhookHandler(ctx: Koa.ParameterizedContext<any, Router.IRouterParamCo
 
         console.info(`New [push] event on branch [${pushBranch}] of [${repository.full_name}]`)
 
-        const jarbasCtx: Partial<JarbasContext> = {
-            pushInfo: {
-                id: repository.id,
-                name: repository.full_name,
-                url: repository.url,
-                branch: pushBranch,
-                defaultBranch: repository.default_branch
-            }
+        const pushInfo: PushInfo = {
+            id: repository.id,
+            name: repository.full_name,
+            url: repository.url,
+            branch: pushBranch,
+            defaultBranch: repository.default_branch,
         }
 
-        jarbasEvents.emit(EVENTS.GITHUB_PUSH, jarbasCtx)
-    }
-    else {
+        jarbasEvents.emit(EVENTS.GITHUB_PUSH, { pushInfo })
+    } else {
         console.warn(`[${event}] received but [push] was expected. Ignoring...`)
     }
 

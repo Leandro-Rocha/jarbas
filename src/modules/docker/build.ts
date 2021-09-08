@@ -1,10 +1,9 @@
 import { listFolderContents } from '../github/util'
 import { docker } from './docker'
 
-export async function buildImage(repositoryFolder: string, repositoryName: string, environment: string) {
-    console.debug(`Building [${repositoryName}] for [${environment}]`)
+export async function buildImage(repositoryFolder: string, imageName: string, labels?: { [key: string]: string }) {
+    console.debug(`Building [${imageName}] on [${repositoryFolder}]`)
 
-    const imageName = `${repositoryName.toLowerCase()}:${environment}`
     const stream = await docker.buildImage(
         {
             context: repositoryFolder,
@@ -12,11 +11,7 @@ export async function buildImage(repositoryFolder: string, repositoryName: strin
         },
         {
             t: imageName,
-            labels: {
-                agent: 'jarbas',
-                jarbasProject: repositoryName,
-                jarbasEnvironment: environment,
-            },
+            labels,
         },
     )
 
@@ -27,8 +22,7 @@ export async function buildImage(repositoryFolder: string, repositoryName: strin
         throw error
     }
 
-    console.info(`Finished building [${repositoryName}]`)
-    return imageName
+    console.info(`Finished building [${imageName}]`)
 }
 
 async function followStream(stream: NodeJS.ReadableStream) {

@@ -1,4 +1,4 @@
-import EventEmitter from "events"
+import EventEmitter from 'events'
 
 export const EVENTS = {
     GITHUB_PUSH: 'GITHUB_PUSH',
@@ -14,19 +14,21 @@ export const jarbasEvents = new EventEmitter()
 
 export interface JarbasContext {
     // project: JarbasProject,
-    pushInfo: {
-        id: number,
-        name: string,
-        url: string,
-        branch: string,
-        defaultBranch: string,
-    },
-    cloneInfo: CloneContext,
+    pushInfo: PushInfo
+    repositoryInfo: RepoClonedInfo
     // environment: string,
-    imageName: string,
+    imageName: string
     newContainerID: string
 }
 
-export interface CloneContext {
-    repositoryFolder: string,
+export interface PushInfo {
+    id: number
+    name: string
+    url: string
+    branch: string
+    defaultBranch: string
+}
+
+export interface RepoClonedInfo {
+    repositoryFolder: string
 }
