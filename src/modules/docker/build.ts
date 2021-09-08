@@ -2,10 +2,7 @@ import { listFolderContents } from '../github/util'
 import { docker } from './docker'
 
 export async function buildImage(repositoryFolder: string, repositoryName: string, environment: string) {
-
     console.debug(`Building [${repositoryName}] for [${environment}]`)
-
-    process.on('uncaughtException', logUncaughtException)
 
     const imageName = `${repositoryName.toLowerCase()}:${environment}`
     const stream = await docker.buildImage(
@@ -18,29 +15,36 @@ export async function buildImage(repositoryFolder: string, repositoryName: strin
             labels: {
                 agent: 'jarbas',
                 jarbasProject: repositoryName,
-                jarbasEnvironment: environment
-            }
-        })
+                jarbasEnvironment: environment,
+            },
+        },
+    )
 
-    await followStream(stream)
+    try {
+        await followStream(stream)
+    } catch (error) {
+        console.error(`Error building image [${imageName}]. Aborting...`)
+        throw error
+    }
 
-    process.off('uncaughtException', logUncaughtException)
     console.info(`Finished building [${repositoryName}]`)
     return imageName
 }
 
 async function followStream(stream: NodeJS.ReadableStream) {
-    await new Promise((resolve, reject) => {
-        docker.modem.followProgress(stream, (err, res) => {
-            if (err) {
-                console.error(err)
-                reject(err)
-            }
-            else {
-                resolve(res)
-            }
-        }, (event => console.debug(event)))
+    return await new Promise((resolve, reject) => {
+        docker.modem.followProgress(
+            stream,
+            (err, res) => {
+                err ? reject(err) : resolve(res)
+            },
+            (event) => {
+                if (event.error) {
+                    reject(event.error)
+                } else {
+                    console.debug(event.stream || event)
+                }
+            },
+        )
     })
 }
-
-const logUncaughtException = (error: any) => { console.error('Build failed: ', error) }
